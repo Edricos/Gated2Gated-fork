@@ -1,6 +1,6 @@
 import torch
 import torch.nn as nn
-from layers.packnet.layers01 import PackLayerConv3d, UnpackLayerConv3d, Conv2D, ResidualBlock, InvDepth, activations
+from src.networks.layers.packnet.layers01 import PackLayerConv3d, UnpackLayerConv3d, Conv2D, ResidualBlock, InvDepth, activations
 
 class Decoder(nn.Module):
     def __init__(self, name, version, ni, no, n1, n2, n3, n4, n5, unpack_kernel, iconv_kernel, num_3d_feat, out_channels, activation = 'sigmoid', use_batchnorm=False):

@@ -8,7 +8,7 @@ from torch.nn.modules.batchnorm import BatchNorm2d
 import torchvision.models as models
 import torch.utils.model_zoo as model_zoo
 from collections import OrderedDict
-from layers.resnet.layers import Conv3x3
+from src.networks.layers.resnet.layers import Conv3x3
 import torch.nn.functional as F
 import math
 

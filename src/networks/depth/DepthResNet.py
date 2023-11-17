@@ -3,9 +3,9 @@
 import torch.nn as nn
 from functools import partial
 
-from layers.resnet.resnet_encoder import ResnetEncoder
-from layers.resnet.depth_decoder import DepthDecoder
-from layers.resnet.layers import disp_to_depth
+from src.networks.layers.resnet.resnet_encoder import ResnetEncoder
+from src.networks.layers.resnet.depth_decoder import DepthDecoder
+from src.networks.layers.resnet.layers import disp_to_depth
 
 ########################################################################################################################
 
