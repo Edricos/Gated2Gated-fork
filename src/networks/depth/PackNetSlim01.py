@@ -57,6 +57,7 @@ class PackNetSlim01(nn.Module):
         # Encoder
 
         self.pack1 = PackLayerConv3d(n1, pack_kernel[0], d=num_3d_feat)
+        # print("pack1 = {}".format(self.pack1))
         self.pack2 = PackLayerConv3d(n2, pack_kernel[1], d=num_3d_feat)
         self.pack3 = PackLayerConv3d(n3, pack_kernel[2], d=num_3d_feat)
         self.pack4 = PackLayerConv3d(n4, pack_kernel[3], d=num_3d_feat)
@@ -104,12 +105,12 @@ class PackNetSlim01(nn.Module):
                 if m.bias is not None:
                     m.bias.data.zero_()
 
-    def forward(self, x):
+    def forward(self, x_in):
         """
         Runs the network and returns inverse depth maps
         (4 scales if training and 1 if not).
         """
-        x = self.pre_calc(x)
+        x = self.pre_calc(x_in)
 
         # Encoder
 
@@ -123,6 +124,7 @@ class PackNetSlim01(nn.Module):
         x4p = self.pack4(x4)
         x5 = self.conv5(x4p)
         x5p = self.pack5(x5)
+
 
         # Skips
 
@@ -175,6 +177,45 @@ class PackNetSlim01(nn.Module):
             concat1 = torch.cat((unpack1 +  skip1, udisp2), 1)
         iconv1 = self.iconv1(concat1)
         disp1 = self.disp1_layer(iconv1)
+
+        # 输出所有的shape,
+        print()
+        print("PackNetSlim01 -- depth")
+        print("{}--x_in.shape".format(x_in.shape))
+        print("{}--x.shape".format(x.shape))
+        print("{}--x1.shape".format(x1.shape))
+        print("{}--x1p.shape".format(x1p.shape))
+        print("{}--x2.shape".format(x2.shape))
+        print("{}--x2p.shape".format(x2p.shape))
+        print("{}--x3.shape".format(x3.shape))
+        print("{}--x3p.shape".format(x3p.shape))
+        print("{}--x4.shape".format(x4.shape))
+        print("{}--x4p.shape".format(x4p.shape))
+        print("{}--x5.shape".format(x5.shape))
+        print("{}--x5p.shape".format(x5p.shape))
+        print("{}--unpack5.shape".format(unpack5.shape))
+        print("{}--concat5.shape".format(concat5.shape))
+        print("{}--iconv5.shape".format(iconv5.shape))
+        print("{}--unpack4.shape".format(unpack4.shape))
+        print("{}--concat4.shape".format(concat4.shape))
+        print("{}--iconv4.shape".format(iconv4.shape))
+        print("{}--disp4.shape".format(disp4.shape))
+        print("{}--udisp4.shape".format(udisp4.shape))
+        print("{}--unpack3.shape".format(unpack3.shape))
+        print("{}--concat3.shape".format(concat3.shape))
+        print("{}--iconv3.shape".format(iconv3.shape))
+        print("{}--disp3.shape".format(disp3.shape))
+        print("{}--udisp3.shape".format(udisp3.shape))
+        print("{}--unpack2.shape".format(unpack2.shape))
+        print("{}--concat2.shape".format(concat2.shape))
+        print("{}--iconv2.shape".format(iconv2.shape))
+        print("{}--disp2.shape".format(disp2.shape))
+        print("{}--udisp2.shape".format(udisp2.shape))
+        print("{}--unpack1.shape".format(unpack1.shape))
+        print("{}--concat1.shape".format(concat1.shape))
+        print("{}--iconv1.shape".format(iconv1.shape))
+        print("{}--disp1.shape".format(disp1.shape))
+        print()
 
         disps = [disp1, disp2, disp3, disp4]
         outputs = {}

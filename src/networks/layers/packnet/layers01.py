@@ -244,12 +244,14 @@ class PackLayerConv3d(nn.Module):
 
     def forward(self, x):
         """Runs the PackLayerConv3d layer."""
+
         x = self.pack(x)
         x = x.unsqueeze(1)
         x = self.conv3d(x)
         b, c, d, h, w = x.shape
         x = x.view(b, c * d, h, w)
         x = self.conv(x)
+        # print("x.shape = {}".format(x.shape))
         return x
 
 

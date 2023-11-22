@@ -74,7 +74,7 @@ def gated_loader(base_dir, img_id, crop_size_h, crop_size_w, history=None,
     return img
 
 
-class GatedDataset(data.Dataset):
+class GatedDataset(data.Datjjjjjjjjjjjjjaset):
 
     def __init__(self,
                  gated_dir,
@@ -96,8 +96,8 @@ class GatedDataset(data.Dataset):
         self.img_ext = img_ext
 
         self.full_res_shape = (1280, 720)
-        self.crop_size_h, self.crop_size_w = int((self.full_res_shape[1] - self.height) / 2), int(
-            (self.full_res_shape[0] - self.width) / 2),
+        self.crop_size_h, self.crop_size_w = (int((self.full_res_shape[1] - self.height) / 2),
+                                              int((self.full_res_shape[0] - self.width) / 2),)
 
         self.frame_idxs = frame_idxs
 

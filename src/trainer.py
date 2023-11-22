@@ -20,11 +20,11 @@ import dataset
 
 from layers import *
 from utils import *
-
+from src.optionsClass import TrainingOptions
 
 class Trainer:
 
-    def __init__(self, options) -> None:
+    def __init__(self, options: TrainingOptions) -> None:
         self.opt = options
         self.log_path = os.path.join(self.opt.log_dir, self.opt.exp_name,
                                      "exp-{}_{}".format(self.opt.exp_num, self.opt.exp_metainfo))
@@ -123,7 +123,7 @@ class Trainer:
                 device=self.device
             )
 
-            if self.opt.train_depth_normalizer:
+            if self.opt.train_depth_normalizer: # False
                 self.parameters_to_train += [self.depth_normalizer]
 
         if self.use_pose_net and self.opt.temporal_loss:
@@ -358,7 +358,7 @@ class Trainer:
 
             duration = time.time() - before_op_time
 
-            # log less frequently after the first 2000 steps to save time & disk space
+            # 在前 2000 个步骤后减少日志记录频率，以节省时间和磁盘空间
             early_phase = batch_id % self.opt.log_frequency == 0 and self.step < 2000
             late_phase = self.step % 2000 == 0
 
@@ -406,7 +406,7 @@ class Trainer:
         # 如果使用循环损耗，则生成 SNR 掩模
         if self.opt.cycle_loss and self.opt.snr_mask:
             for scale in self.opt.scales:
-                if self.opt.v1_multiscale:
+                if self.opt.v1_multiscale: # True
                     source_scale = scale
                 else:
                     source_scale = 0
@@ -501,7 +501,7 @@ class Trainer:
 
     def compute_reprojection_loss(self, pred, target):
         """
-            计算一批预测图像和目标图像之间的重投影损失
+            计算一批预测图像和目标图像之间的重投影损失，返回逐像素的重投影损失
         """
         abs_diff = torch.abs(target - pred)
         l1_loss = abs_diff.mean(1, True)
@@ -545,9 +545,9 @@ class Trainer:
                 if not self.opt.disable_automasking:  # False
                     identity_reprojection_losses = []
                     for frame_id in self.opt.frame_ids[1:]: # 0 -1 1
-                        pred = inputs[("gated", frame_id, source_scale)]
+                        in_img = inputs[("gated", frame_id, source_scale)]
                         identity_reprojection_losses.append(
-                            self.compute_reprojection_loss(pred, target))
+                            self.compute_reprojection_loss(in_img, target))
 
                     identity_reprojection_losses = torch.cat(identity_reprojection_losses, 1)
 
@@ -592,7 +592,8 @@ class Trainer:
                     reprojection_loss = reprojection_losses
 
                 if not self.opt.disable_automasking: # False
-                    # 添加随机数来打破平局
+                    # 添加随机数来打破平局 这通常用于在优化过程中打破平局，特别是当两个损失值非常接近时。
+                    # 添加噪声可以帮助模型避免在训练过程中陷入局部最小值。
                     identity_reprojection_loss += torch.randn(
                         identity_reprojection_loss.shape).cuda() * 0.00001
 
@@ -603,11 +604,17 @@ class Trainer:
                 if combined.shape[1] == 1:
                     to_optimise = combined
                 else:
+                    # to_optimise存储了这些最小值，这些值将用于优化过程
+                    # idxs 存储了这些最小值的索引，
+                    #    这可以用来追踪是哪种类型的损失（身份投影还是普通重投影）在每个像素位置上被认为是更优的。
                     to_optimise, idxs = torch.min(combined, dim=1)
 
-                if not self.opt.disable_automasking:
+                if not self.opt.disable_automasking: # False
+                    # 这个条件判断创建了一个布尔张量，其中 True 表示选择了 reprojection_loss，
+                    # 而 False 表示选择了 identity_reprojection_loss。
                     outputs["identity_selection/{}".format(scale)] = (
-                            idxs > identity_reprojection_loss.shape[1] - 1).float()
+                            idxs > identity_reprojection_loss.shape[1] - 1
+                    ).float()
 
                 temporal_loss = to_optimise.mean()
                 losses["temporal_loss/{}".format(scale)] = temporal_loss
